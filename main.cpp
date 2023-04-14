@@ -1,51 +1,58 @@
-#include "connection.h"
-#include "neuron.h"
-#include "layer_tools.h"
-
-#include <iostream>
-#include <cmath>
-#include <vector>
-
 #include <Eigen/Dense>
 
-double sigmoid(double x) {
-    return 1.0 / (1.0 + std::exp(-x));
+#include <iostream>
+#include <algorithm>
+
+typedef float fp_t;
+
+
+template <typename Derived>
+Eigen::Matrix<typename Derived::Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime>
+relu(const Eigen::MatrixBase<Derived>& x) {
+    return x.cwiseMax(0);
 }
 
-double relu(double x) {
-    return std::max(0.0, x);
+fp_t relu(fp_t x) {
+    return std::max(0.0f, x);
 }
 
-void print(double f) {
-    std::cout << f << std::endl;
-}
-
-static std::vector<Connection<double>> cp;
-Connection<double>& getFromPool() {
-    if (cp.size() == 0) cp.reserve(30000); //make sure a realloc doesnt happen
-
-    cp.push_back(Connection<double>(1.0));
-    return cp.back();
-}
-
-
+using std::cout;
+using std::endl;
 
 int main() {
-    // Single neuron with a single input
-    auto l1 = BuildLayer<double>(1, 2, 1, relu);
-    auto l2 = BuildLayer<double>(2, 100, 2, relu);
-    auto l3 = BuildLayer<double>(3, 100, 100, relu);
-    auto l4 = BuildLayer<double>(4, 2, 100, relu);
 
-    FullyConnectLayers<std::vector<Neuron<double>>, std::function<Connection<double>&()>, double>(l1, l2, &getFromPool);
-    FullyConnectLayers<std::vector<Neuron<double>>, std::function<Connection<double>&()>, double>(l2, l3, &getFromPool);
-    FullyConnectLayers<std::vector<Neuron<double>>, std::function<Connection<double>&()>, double>(l3, l4, &getFromPool);
 
-    l4[0].addOutput(print);
-    l4[1].addOutput(print);
+    // our inputs
+    Eigen::Matrix<fp_t, 3, 1> inputs; inputs <<
+        1.0f,
+        2.0f,
+        3.0f;
 
-    l1[0].signal(1);
-    l1[1].signal(4);
+    // for layers, each matrix contains the weights between layers
+    // I = input layer, H = hidden layer, O = output layer
+    // w = weight, b = bias
+
+    // Input to Hidden
+    Eigen::Matrix<fp_t, 64, 3> wItoH;
+    wItoH.setRandom();
+    Eigen::Vector<fp_t, 64> bItoH;
+    bItoH.setZero();
+
+    // Hidden to output
+    Eigen::Matrix<fp_t, 1, 64> wHtoO;
+    wHtoO.setRandom();
+    fp_t bHtoO = 0;
+
+
+    //take a step forward and record intermediates
+    Eigen::Vector<fp_t, 64> ih_out = relu((wItoH * inputs) + bItoH);
+    float price = relu((wHtoO * ih_out) + bHtoO);
+
+    cout << price << endl;
+
+    //backprop
+    
+
 
     return 0;
 }
