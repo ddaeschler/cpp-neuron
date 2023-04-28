@@ -7,7 +7,8 @@
 
 #include <concepts>
 
-template<typename T>
-concept floating_point = std::floating_point<T>;
+typedef float fp_t;
+
+template<class T> concept Integral = std::is_integral<T>::value;
 
 #endif //CPP_NEURON_COMMON_H
