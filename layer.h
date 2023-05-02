@@ -67,7 +67,7 @@ public:
     }
 
     template <typename Error, typename SelfOutUnactivated, typename LayerInputs>
-    auto backProp(const Error& e, const SelfOutUnactivated& selfOut, const LayerInputs& inputs, fp_t learningRate=1e-4f) {
+    auto backProp(const Error& e, const SelfOutUnactivated& selfOut, const LayerInputs& inputs, fp_t learningRate) {
         auto delta = activation_.f_grad(selfOut).cwiseProduct(e);
         auto oldWeights = weights_;
         auto weightAdj = learningRate * delta * inputs.transpose();

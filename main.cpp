@@ -36,25 +36,27 @@ using std::endl;
 int main() {
     // our inputs
     Eigen::Matrix<fp_t, 5, 1> inputs; inputs <<
-        1.0f,
-        2.0f,
-        3.0f,
-        4.0f,
-        5.0f;
+        0.3f,
+        0.4f,
+        0.5f,
+        0.6f,
+        0.7f;
 
     // expected output
-    fp_t y = 5;
+    fp_t y = 1;
 
     // learning rate
-    static const fp_t LEARNING_RATE = 1e-4;
+    static const fp_t LEARNING_RATE = 1e-3;
 
     ReluActivation a;
-    Layer<inputs.rows(), 64, ReluActivation> ih(a);
-    Layer<64, 1, ReluActivation> ho(a);
+    Layer<inputs.rows(), 16, ReluActivation> ih(a);
+    Layer<16, 16, ReluActivation> ihH1(a);
+    Layer<16, 1, ReluActivation> ho(a);
 
-    for (int i = 0; i < 300; i++) {
+    for (int i = 0; i < 3000; i++) {
         auto ihOut = ih.forward(inputs);
-        auto hoOut = ho.forward(ihOut.activated);
+        auto ihH1Out = ihH1.forward(ihOut.activated);
+        auto hoOut = ho.forward(ihH1Out.activated);
 
         if (hoOut.unactivated[0] < 0.0f) {
             //we're dead. dump state
@@ -65,9 +67,11 @@ int main() {
         cout << "res: " << hoOut.activated << endl;
 
         //now start with the rightmost layer and backprop
-        auto delta = ho.backProp(hoOut.activated - Eigen::Vector<fp_t, 1>(y), hoOut.unactivated,
-                                 ihOut.activated, LEARNING_RATE);
-        ih.backProp( std::get<1>(delta) * std::get<0>(delta), ihOut.unactivated, inputs, LEARNING_RATE);
+        auto delta1 = ho.backProp(hoOut.activated - Eigen::Vector<fp_t, 1>(y), hoOut.unactivated,
+                                  ihH1Out.activated, LEARNING_RATE);
+        auto delta2 = ihH1.backProp( std::get<1>(delta1) * std::get<0>(delta1), ihH1Out.unactivated,
+                                     ihOut.activated, LEARNING_RATE);
+        ih.backProp( std::get<1>(delta2) * std::get<0>(delta2), ihOut.unactivated, inputs, LEARNING_RATE);
     }
 
 
