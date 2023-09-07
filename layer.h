@@ -47,12 +47,16 @@ private:
 
 public:
     explicit Layer(const Activation& activation) : activation_(activation) {
-        Initialization::WeightInitHE(weights_);
-        biases_.setZero();
+        initialize();
     }
 
     explicit Layer(const Activation& activation, const LayerMatrix& weights, const BiasMatrix& biases)
     : activation_(activation), weights_(weights), biases_(biases) {
+    }
+
+    void initialize() {
+        Initialization::WeightInitHE(weights_);
+        biases_.setConstant(0.001);
     }
 
     template <typename T>

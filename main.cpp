@@ -3,32 +3,8 @@
 #include <iostream>
 #include <algorithm>
 
-#include "common.h"
-
 #include "layer.h"
 #include "activation.h"
-
-
-template <typename Derived>
-Eigen::Matrix<typename Derived::Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime>
-relu(const Eigen::MatrixBase<Derived>& x) {
-    return x.cwiseMax(0);
-}
-
-template <typename Derived>
-Eigen::Matrix<typename Derived::Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime>
-relu_grad(const Eigen::MatrixBase<Derived>& x) {
-    return (x.array() > 0).template cast<typename Derived::Scalar>();
-}
-
-fp_t relu(fp_t x) {
-    return std::max(0.0f, x);
-}
-
-fp_t relu_grad(fp_t x) {
-    if (x > 0) return 1;
-    else return 0;
-}
 
 using std::cout;
 using std::endl;
@@ -43,25 +19,27 @@ int main() {
         0.7f;
 
     // expected output
-    fp_t y = 1;
+    fp_t y = 0.9;
 
     // learning rate
     static const fp_t LEARNING_RATE = 1e-3;
 
     ReluActivation a;
-    Layer<inputs.rows(), 16, ReluActivation> ih(a);
-    Layer<16, 16, ReluActivation> ihH1(a);
-    Layer<16, 1, ReluActivation> ho(a);
+    Layer<inputs.rows(), 5, ReluActivation> ih(a);
+    Layer<5, 5, ReluActivation> ihH1(a);
+    Layer<5, 1, ReluActivation> ho(a);
 
-    for (int i = 0; i < 3000; i++) {
+    for (int i = 0; i < 5000; i++) {
         auto ihOut = ih.forward(inputs);
         auto ihH1Out = ihH1.forward(ihOut.activated);
         auto hoOut = ho.forward(ihH1Out.activated);
 
         if (hoOut.unactivated[0] < 0.0f) {
-            //we're dead. dump state
-            cout << "ReLU died." << endl;
-            break;
+            //we're dead. re-init
+            ih.initialize();
+            ihH1.initialize();
+            ho.initialize();
+            continue;
         }
 
         cout << "res: " << hoOut.activated << endl;

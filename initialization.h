@@ -27,11 +27,7 @@ public:
         std::mt19937 gen(rd());
 
         // Assign random numbers to the matrix elements
-        for (int i = 0; i < matrix.rows(); ++i) {
-            for (int j = 0; j < matrix.cols(); ++j) {
-                matrix(i, j) = dist(gen);
-            }
-        }
+        matrix = Derived::NullaryExpr(matrix.rows(), matrix.cols(), [&]() { return dist(gen); });
     }
 
     template<typename Derived>

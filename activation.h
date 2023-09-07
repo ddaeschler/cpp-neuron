@@ -50,10 +50,76 @@ public:
     }
 };
 
+class LeakyReluActivation {
+public:
+    static constexpr fp_t alpha = 0.01;
+
+    template <typename Derived>
+    static Eigen::Matrix<typename Derived::Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime>
+    f(const Eigen::MatrixBase<Derived>& x) {
+        return x.unaryExpr([](typename Derived::Scalar elem) { return elem >= 0 ? elem : alpha * elem; });
+    }
+
+    template <typename Derived>
+    static Eigen::Matrix<typename Derived::Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime>
+    f_grad(const Eigen::MatrixBase<Derived>& x) {
+        return x.unaryExpr([](typename Derived::Scalar elem) { return elem > 0 ? 1 : alpha; });
+    }
+
+    static fp_t f(fp_t x) {
+        return x >= 0 ? x : alpha * x;
+    }
+
+    static fp_t f_grad(fp_t x) {
+        return x > 0 ? 1 : alpha;
+    }
+};
+
+class SigmoidActivation {
+public:
+    // For Eigen::Matrix
+    template <typename Derived>
+    static Eigen::Matrix<typename Derived::Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime>
+    f(const Eigen::MatrixBase<Derived>& x) {
+        return (1 / (1 + (-x.array()).exp())).matrix();
+    }
+
+    // Gradient of Sigmoid for Eigen::Matrix
+    template <typename Derived>
+    static Eigen::Matrix<typename Derived::Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime>
+    f_grad(const Eigen::MatrixBase<Derived>& x) {
+        Eigen::Array<typename Derived::Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> sigmoid_array = f(x).array();
+        return (sigmoid_array * (1 - sigmoid_array)).matrix();
+    }
+
+    // For single floating-point value
+    static fp_t f(fp_t x) {
+        return 1 / (1 + std::exp(-x));
+    }
+
+    // Gradient of Sigmoid for single floating-point value
+    static fp_t f_grad(fp_t x) {
+        double sigmoid_value = f(x);
+        return sigmoid_value * (1 - sigmoid_value);
+    }
+};
+
+
 template <>
 struct activation_traits<ReluActivation> {
     using matrix_type = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>;
     using fp_type = fp_t;
 };
 
+template <>
+struct activation_traits<SigmoidActivation> {
+    using matrix_type = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>;
+    using fp_type = fp_t;
+};
+
+template <>
+struct activation_traits<LeakyReluActivation> {
+    using matrix_type = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>;
+    using fp_type = fp_t;
+};
 #endif //CPP_NEURON_ACTIVATION_H
