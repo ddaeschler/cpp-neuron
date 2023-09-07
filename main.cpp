@@ -9,14 +9,14 @@
 using std::cout;
 using std::endl;
 
-int main() {
-    // our inputs
+void simple_regression() {
+    // our rows
     Eigen::Matrix<fp_t, 5, 1> inputs; inputs <<
-        0.3f,
-        0.4f,
-        0.5f,
-        0.6f,
-        0.7f;
+                                             0.3f,
+            0.4f,
+            0.5f,
+            0.6f,
+            0.7f;
 
     // expected output
     fp_t y = 0.9;
@@ -25,9 +25,9 @@ int main() {
     static const fp_t LEARNING_RATE = 1e-3;
 
     ReluActivation a;
-    LinearLayer<inputs.rows(), 5, ReluActivation> ih(a);
-    LinearLayer<5, 5, ReluActivation> ihH1(a);
-    LinearLayer<5, 1, ReluActivation> ho(a);
+    LinearLayer<inputs.rows(), 3, ReluActivation> ih(a);
+    LinearLayer<3, 3, ReluActivation> ihH1(a);
+    LinearLayer<3, 1, ReluActivation> ho(a);
 
     for (int i = 0; i < 5000; i++) {
         auto ihOut = ih.forward(inputs);
@@ -51,9 +51,31 @@ int main() {
                                      ihOut.activated, LEARNING_RATE);
         ih.backProp( std::get<1>(delta2) * std::get<0>(delta2), ihOut.unactivated, inputs, LEARNING_RATE);
     }
+}
 
+void simple_classification() {
+    // our rows
+    Eigen::Matrix<fp_t, 3, 3> inputs; inputs <<
+        0.1f, 0.2f, 0.3f, // dog
+        0.2f, 0.1f, 0.3f, // cat
+        0.3f, 0.1f, 0.2f // pony
+        ;
 
+    // expected outputs. indicates which row output should be hot
+    const int DOG = 0;
+    const int CAT = 1;
+    const int PONY = 2;
 
+    // learning rate
+    static const fp_t LEARNING_RATE = 1e-3;
+
+    // build the network
+
+}
+
+int main() {
+    simple_regression();
+    simple_classification();
 
     return 0;
 }
