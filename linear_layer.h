@@ -2,8 +2,8 @@
 // Created by David Daeschler on 4/19/23.
 //
 
-#ifndef CPP_NEURON_LAYER_H
-#define CPP_NEURON_LAYER_H
+#ifndef CPP_NEURON_LINEAR_LAYER_H
+#define CPP_NEURON_LINEAR_LAYER_H
 
 #include "common.h"
 #include "activation.h"
@@ -16,7 +16,7 @@
 
 template<int InputCount, int OutputCount, typename Activation>
 requires HasActivation<Activation>
-class Layer {
+class LinearLayer {
 public:
     typedef Eigen::Matrix<fp_t, OutputCount, InputCount> LayerMatrix;
     typedef Eigen::Vector<fp_t, OutputCount> BiasMatrix;
@@ -46,11 +46,11 @@ private:
     BiasMatrix biases_;
 
 public:
-    explicit Layer(const Activation& activation) : activation_(activation) {
+    explicit LinearLayer(const Activation& activation) : activation_(activation) {
         initialize();
     }
 
-    explicit Layer(const Activation& activation, const LayerMatrix& weights, const BiasMatrix& biases)
+    explicit LinearLayer(const Activation& activation, const LayerMatrix& weights, const BiasMatrix& biases)
     : activation_(activation), weights_(weights), biases_(biases) {
     }
 
@@ -83,4 +83,4 @@ public:
     }
 };
 
-#endif //CPP_NEURON_LAYER_H
+#endif //CPP_NEURON_LINEAR_LAYER_H

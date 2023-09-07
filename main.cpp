@@ -3,7 +3,7 @@
 #include <iostream>
 #include <algorithm>
 
-#include "layer.h"
+#include "linear_layer.h"
 #include "activation.h"
 
 using std::cout;
@@ -25,9 +25,9 @@ int main() {
     static const fp_t LEARNING_RATE = 1e-3;
 
     ReluActivation a;
-    Layer<inputs.rows(), 5, ReluActivation> ih(a);
-    Layer<5, 5, ReluActivation> ihH1(a);
-    Layer<5, 1, ReluActivation> ho(a);
+    LinearLayer<inputs.rows(), 5, ReluActivation> ih(a);
+    LinearLayer<5, 5, ReluActivation> ihH1(a);
+    LinearLayer<5, 1, ReluActivation> ho(a);
 
     for (int i = 0; i < 5000; i++) {
         auto ihOut = ih.forward(inputs);
@@ -35,7 +35,7 @@ int main() {
         auto hoOut = ho.forward(ihH1Out.activated);
 
         if (hoOut.unactivated[0] < 0.0f) {
-            //we're dead. re-init
+            //we're dead. re-init. this shouldn't happen with real data
             ih.initialize();
             ihH1.initialize();
             ho.initialize();
